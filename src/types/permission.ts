@@ -1,3 +1,5 @@
+import { ApiResponse, ListPagination } from '~/types/common'
+
 export interface Permission {
   _id: string
   url: string
@@ -13,3 +15,8 @@ export type AddPermissionPayload = Pick<Permission, 'url' | 'description'>
 export type EditPermissionPayload = Partial<
   Pick<Permission, 'url' | 'description'>
 >
+
+export type Permissions = ApiResponse<{
+  permissions: Permission[]
+  pagination: ListPagination
+}>

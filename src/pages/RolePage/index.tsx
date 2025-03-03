@@ -24,6 +24,8 @@ import { ListPagination, ListParams } from '~/types/common'
 import { Permission } from '~/types/permission'
 import { Role } from '~/types/role'
 
+const ROLES_LIMIT = 10
+
 const ROLE_COLUMNS: ColumnProps[] = [
   {
     name: '_id',
@@ -47,7 +49,7 @@ const RolePage = () => {
   const [pagination, setPagination] = useState<ListPagination | null>(null)
   const [filters, setFilters] = useState<ListParams>({
     page: 1,
-    limit: 3,
+    limit: ROLES_LIMIT,
     sort: 'desc',
     sortBy: 'createdAt'
   })
@@ -96,11 +98,11 @@ const RolePage = () => {
       if (res.data._id) {
         toast.success(res.message)
         handleCloseDialog()
-        // handleGetRoles()
         setFilters({ ...filters, page: 1 })
       }
-    } catch (error) {
-      console.log('🚀error---->', error)
+    } catch (error: any) {
+      const errorInfo = error?.response?.data
+      toast.error(errorInfo?.message)
     } finally {
       setIsLoading(false)
     }
@@ -122,16 +124,20 @@ const RolePage = () => {
       try {
         const res = await roleService.editRoleById(selectedRole._id, payload)
         if (res.data) {
-          toast.success(res.message)
-          const { _id, name, description, permissions } = res.data || {}
-          const index = roles.findIndex((role) => role._id === _id)
-          roles[index].name = name
-          roles[index].description = description
-          roles[index].permissions = permissions
+          const { _id } = res.data || {}
+
+          setRoles((prevRoles) =>
+            prevRoles.map((role) =>
+              role._id === _id ? { ...role, ...res.data } : role
+            )
+          )
+
           handleCloseDialog()
+          toast.success(res.message)
         }
-      } catch (error) {
-        console.log('🚀fetch role has error---->', error)
+      } catch (error: any) {
+        const errorInfo = error?.response?.data
+        toast.error(errorInfo?.message)
       } finally {
         setIsLoading(false)
       }
@@ -154,7 +160,8 @@ const RolePage = () => {
           setFilters({ ...filters, page: 1 })
         }
       } catch (error: any) {
-        toast.error('Delete role is failed.', error)
+        const errorInfo = error?.response?.data
+        toast.error(errorInfo?.message)
       } finally {
         setIsLoading(false)
       }
@@ -193,7 +200,7 @@ const RolePage = () => {
             setPermissions(res.data)
           }
         } catch (error) {
-          console.log('🚀error---->', error)
+          console.log(error)
         } finally {
           setIsFetching(false)
         }

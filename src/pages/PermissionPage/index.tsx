@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import AddIcon from '@mui/icons-material/Add'
 import TableComponent, { ColumnProps } from '~/components/TableComponent'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import permissionService from '~/services/permissionService'
 import {
   AddPermissionPayload,
@@ -15,6 +15,10 @@ import {
 import PermissionDialog from '~/pages/PermissionPage/PermissionDialog'
 import { toast } from 'react-toastify'
 import PermissionConfirmDialog from '~/pages/PermissionPage/PermissionConfirmDialog'
+import { ListPagination, ListParams } from '~/types/common'
+import Pagination from '@mui/material/Pagination'
+
+const PERMISSIONS_LIMIT = 10
 
 const PERMISSION_COLUMNS: ColumnProps[] = [
   {
@@ -39,6 +43,11 @@ const PermissionPage = () => {
   const [selectedPermission, setSelectedPermission] = useState<Permission>()
   const [isShowPermissionConfirmDialog, setIsShowPermissionConfirmDialog] =
     useState<boolean>(false)
+  const [pagination, setPagination] = useState<ListPagination>()
+  const [filters, setFilters] = useState<ListParams>({
+    limit: PERMISSIONS_LIMIT,
+    page: 1
+  })
 
   // Events handling
   // Handle open permission dialog if user click button Add
@@ -55,11 +64,8 @@ const PermissionPage = () => {
     try {
       const res = await permissionService.add(payload)
       if (res?.data?._id) {
-        // Toast notification success
+        setFilters({ ...filters, page: 1 })
         toast.success(res?.message)
-
-        // Push to permissions
-        setPermissions((prev) => [res.data, ...prev])
       }
     } catch (error: any) {
       const errorInfo = error?.response?.data
@@ -77,20 +83,11 @@ const PermissionPage = () => {
         )
 
         if (res.data._id) {
-          // Update item edited on list permission
-          setPermissions((prev) => [
-            ...prev.map((item) =>
-              item._id === res.data._id
-                ? {
-                    ...item,
-                    updatedAt: res.data.updatedAt,
-                    url: res.data.url,
-                    description: res.data?.description
-                  }
-                : item
+          setPermissions((prev) =>
+            prev.map((item) =>
+              item._id === res.data._id ? { ...item, ...res.data } : item
             )
-          ])
-
+          )
           // Toast notification success
           toast.success(res.message)
         }
@@ -114,10 +111,7 @@ const PermissionPage = () => {
           // Reset selected permission
           setSelectedPermission(undefined)
 
-          // Update list permission
-          setPermissions((prev) =>
-            prev.filter((permission) => permission._id !== res.data._id)
-          )
+          setFilters({ ...filters, page: 1 })
 
           // Toast notification
           toast.success(res.message)
@@ -144,26 +138,34 @@ const PermissionPage = () => {
     }
   }
 
-  useEffect(() => {
-    const handleGetPermissions = async () => {
-      setLoading(true)
-      try {
-        const res = await permissionService.getAll()
+  // Handle page change
+  const handlePageChange = (e: React.ChangeEvent<unknown>, page: number) => {
+    e.stopPropagation()
+    setFilters({ ...filters, page })
+  }
 
-        if (res.data.length > 0) {
-          setPermissions(res.data)
-        }
-      } catch (error) {
-        console.log('🚀error---->', error)
-      } finally {
-        setTimeout(() => {
-          setLoading(false)
-        }, 300)
+  // Fetch list permission
+  const fetchListPermission = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await permissionService.getList(filters)
+
+      if (res.data) {
+        setPermissions(res.data.permissions)
+        setPagination(res.data.pagination)
       }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setTimeout(() => {
+        setLoading(false)
+      }, 300)
     }
+  }, [filters])
 
-    handleGetPermissions()
-  }, [])
+  useEffect(() => {
+    fetchListPermission()
+  }, [fetchListPermission])
 
   return (
     <>
@@ -204,6 +206,22 @@ const PermissionPage = () => {
             setIsShowPermissionConfirmDialog(true)
           }}
         />
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 2
+          }}
+        >
+          <Pagination
+            color='primary'
+            count={pagination?.totalPages}
+            page={pagination?.currentPage}
+            onChange={handlePageChange}
+          />
+        </Box>
       </Container>
 
       {/* Permission Dialog */}

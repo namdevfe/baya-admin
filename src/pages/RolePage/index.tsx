@@ -264,25 +264,6 @@ const RolePage = () => {
                 }}
               >
                 <RoleFilters filters={filters} onChange={handleSortChange} />
-                {/* <MenuItem>
-                  <FormControl fullWidth>
-                    <InputLabel id='select-sort-label'>Select sort</InputLabel>
-                    <Select
-                      labelId='select-sort-label'
-                      id='select-sort-label'
-                      label='Select option'
-                      size='small'
-                      value={filters.sortBy}
-                      onChange={handleSortChange}
-                    >
-                      {SORT_OPTIONS.map((item) => (
-                        <MenuItem key={item.value} value={item.value}>
-                          {item.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </MenuItem> */}
               </Menu>
             </Box>
           </Box>

@@ -14,6 +14,7 @@ import {
 } from '~/types/permission'
 import PermissionDialog from '~/pages/PermissionPage/PermissionDialog'
 import { toast } from 'react-toastify'
+import PermissionConfirmDialog from '~/pages/PermissionPage/PermissionConfirmDialog'
 
 const PERMISSION_COLUMNS: ColumnProps[] = [
   {
@@ -31,12 +32,13 @@ const PERMISSION_COLUMNS: ColumnProps[] = [
 ]
 
 const PermissionPage = () => {
-  // Init hooks
-  const [permissions, setPermissions] = useState<Permission[]>([])
   const [loading, setLoading] = useState<boolean>(true)
+  const [permissions, setPermissions] = useState<Permission[]>([])
   const [isShowPermissionDialog, setIsShowPermissionDialog] =
     useState<boolean>(false)
   const [selectedPermission, setSelectedPermission] = useState<Permission>()
+  const [isShowPermissionConfirmDialog, setIsShowPermissionConfirmDialog] =
+    useState<boolean>(false)
 
   // Events handling
   // Handle open permission dialog if user click button Add
@@ -95,6 +97,38 @@ const PermissionPage = () => {
       } catch (error: any) {
         const errorInfo = error?.response?.data
         toast.error(errorInfo?.message)
+      }
+    }
+  }
+
+  // Handle delete permission
+  const handleDeletePermission = async () => {
+    if (selectedPermission?._id) {
+      setLoading(true)
+      try {
+        const res = await permissionService.deleteById(selectedPermission._id)
+        if (res.data._id) {
+          // Close confirm dialog
+          setIsShowPermissionConfirmDialog(false)
+
+          // Reset selected permission
+          setSelectedPermission(undefined)
+
+          // Update list permission
+          setPermissions((prev) =>
+            prev.filter((permission) => permission._id !== res.data._id)
+          )
+
+          // Toast notification
+          toast.success(res.message)
+        }
+      } catch (error: any) {
+        const errorInfo = error?.response?.data
+        toast.error(errorInfo?.message)
+      } finally {
+        setTimeout(() => {
+          setLoading(false)
+        }, 300)
       }
     }
   }
@@ -165,6 +199,10 @@ const PermissionPage = () => {
             setSelectedPermission(permission)
             handleOpenPermissionDialog()
           }}
+          onRemove={(permission) => {
+            setSelectedPermission(permission)
+            setIsShowPermissionConfirmDialog(true)
+          }}
         />
       </Container>
 
@@ -174,6 +212,12 @@ const PermissionPage = () => {
         permission={selectedPermission}
         onClose={handleClosePermissionDialog}
         onSubmit={handleSubmit}
+      />
+
+      {/* Delete Confirm Dialog */}
+      <PermissionConfirmDialog
+        isOpen={isShowPermissionConfirmDialog}
+        onOk={handleDeletePermission}
       />
     </>
   )

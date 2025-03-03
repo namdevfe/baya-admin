@@ -21,6 +21,10 @@ const permissionService = {
   ): Promise<ApiResponse<Permission>> {
     const url = `/permissions/edit-permission/${id}`
     return axiosInstance.put(url, payload)
+  },
+  deleteById(id: string): Promise<ApiResponse<Permission>> {
+    const url = `/permissions/delete-permission/${id}`
+    return axiosInstance.delete(url)
   }
 }
 

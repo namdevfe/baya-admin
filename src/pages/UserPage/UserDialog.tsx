@@ -46,7 +46,7 @@ const UserDialog = ({
   const [roles, setRoles] = useState<Role[]>([])
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false)
-  const [previewImage, setPreviewImage] = useState<string>()
+  const [previewImageURL, setPreviewImageURL] = useState<string>()
   const [files, setFiles] = useState<FileList>()
 
   const roleOptions = roles.map((role) => ({
@@ -96,8 +96,11 @@ const UserDialog = ({
   const uploadFile = async (files: FileList) => {
     try {
       const formData = new FormData()
-      formData.append('file', files[0])
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET_NAME)
+
+      for (const file of files) {
+        formData.append('file', file)
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET_NAME)
+      }
 
       const res: any = await axios.post(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -108,8 +111,16 @@ const UserDialog = ({
         return res.data.secure_url
       }
     } catch (error) {
-      console.log('🚀error---->', error)
+      console.log('Upload failed', error)
     }
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files as FileList
+    const file = fileList?.[0] as File
+    const previewURL = URL.createObjectURL(file)
+    setPreviewImageURL(previewURL)
+    setFiles(fileList)
   }
 
   const _onSubmit = async (data: AddUserPayload) => {
@@ -145,6 +156,13 @@ const UserDialog = ({
     fetchAllRole()
   }, [fetchAllRole])
 
+  // Clear image url before created to preview
+  useEffect(() => {
+    return () => {
+      previewImageURL && URL.revokeObjectURL(previewImageURL)
+    }
+  }, [previewImageURL])
+
   return (
     <Dialog
       fullWidth
@@ -160,29 +178,36 @@ const UserDialog = ({
       <DialogTitle>{user ? 'Edit user' : 'Add new user'}</DialogTitle>
       <DialogContent>
         <Box component='form' onSubmit={handleSubmit(_onSubmit)}>
-          {previewImage ? (
-            <Avatar
-              src={previewImage}
-              alt='avatar'
-              sx={{ width: 100, height: 100 }}
-            />
-          ) : (
-            <Avatar alt='avatar' sx={{ width: 100, height: 100 }} />
-          )}
-          <label htmlFor='avatar-upload' style={{ cursor: 'pointer' }}>
-            Choose Image
-          </label>
-          <input
-            type='file'
-            id='avatar-upload'
-            accept='image/*'
-            name='avatar'
-            hidden
-            onChange={(e) => {
-              setPreviewImage(URL.createObjectURL(e.target.files?.[0] as any))
-              setFiles(e.target.files as any)
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              marginBottom: 4
             }}
-          />
+          >
+            {previewImageURL ? (
+              <Avatar
+                src={previewImageURL}
+                alt='avatar'
+                sx={{ width: 100, height: 100 }}
+              />
+            ) : (
+              <Avatar alt='avatar' sx={{ width: 100, height: 100 }} />
+            )}
+            <label htmlFor='avatar-upload' style={{ cursor: 'pointer' }}>
+              Choose Image
+            </label>
+            <input
+              type='file'
+              id='avatar-upload'
+              accept='image/*'
+              name='avatar'
+              hidden
+              onChange={handleImageChange}
+            />
+          </Box>
 
           <InputField
             autoComplete='off'

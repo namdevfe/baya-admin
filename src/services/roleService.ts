@@ -13,6 +13,10 @@ const roleService = {
       params
     })
   },
+  getAll(): Promise<ApiResponse<Role[]>> {
+    const url = '/roles/get-all-role'
+    return axiosInstance.get(url)
+  },
   editRoleById(
     id: string,
     payload: EditRolePayload

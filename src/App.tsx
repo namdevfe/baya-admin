@@ -7,6 +7,7 @@ import RegisterPage from '~/pages/Auth/RegisterPage'
 import DashboardPage from '~/pages/DashboardPage'
 import PermissionPage from '~/pages/PermissionPage'
 import RolePage from '~/pages/RolePage'
+import UserPage from '~/pages/UserPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route path='/' element={<MainLayout />}>
             <Route index element={<DashboardPage />} />
+            <Route path='/users' element={<UserPage />} />
             <Route path='/setting/roles' element={<RolePage />} />
             <Route path='/setting/permissions' element={<PermissionPage />} />
           </Route>

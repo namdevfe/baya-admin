@@ -15,9 +15,6 @@ import {
   EditPermissionPayload,
   Permission
 } from '~/types/permission'
-// import Typography from '@mui/material/Typography'
-// import Checkbox from '@mui/material/Checkbox'
-// import FormControlLabel from '@mui/material/FormControlLabel'
 
 interface PermissionDialogProps {
   isOpen?: boolean

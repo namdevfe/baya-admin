@@ -12,12 +12,18 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import { Fragment, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt'
 
 const SIDEBAR_MENUS = [
   {
     text: 'Dashboard',
     icon: <DashboardIcon color='primary' />,
     path: '/'
+  },
+  {
+    text: 'Users',
+    icon: <PeopleAltIcon color='primary' />,
+    path: '/users'
   },
   {
     text: 'Setting',

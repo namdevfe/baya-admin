@@ -12,13 +12,14 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { ReactNode } from 'react'
 
-export interface ColumnProps {
+export interface ColumnProps<T> {
   name: string
   label: ReactNode
+  render?: (item: T) => ReactNode
 }
 
 interface TableComponentProps {
-  columns: ColumnProps[]
+  columns: ColumnProps<any>[]
   data: any[]
   loading?: boolean
   className?: string
@@ -58,9 +59,17 @@ const TableComponent = ({
             {data.length > 0 &&
               data.map((row, index) => (
                 <TableRow key={row.id || new Date().getTime() + index}>
-                  {columns.map((column) => (
-                    <TableCell key={column.name}>{row[column.name]}</TableCell>
-                  ))}
+                  {columns.map((column) =>
+                    column.render ? (
+                      <TableCell key={column.name}>
+                        {column.render(row)}
+                      </TableCell>
+                    ) : (
+                      <TableCell key={column.name}>
+                        {row[column.name]}
+                      </TableCell>
+                    )
+                  )}
                   <TableCell>
                     <Box
                       sx={{

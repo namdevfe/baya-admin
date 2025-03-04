@@ -1,3 +1,5 @@
+import { ApiResponse, ListPagination } from '~/types/common'
+
 export interface User {
   _id: string
   email: string
@@ -17,3 +19,8 @@ export type AddUserPayload = Pick<
   User,
   'email' | 'password' | 'firstName' | 'lastName' | 'role' | 'avatar'
 >
+
+export type Users = ApiResponse<{
+  users: User[]
+  pagination: ListPagination
+}>

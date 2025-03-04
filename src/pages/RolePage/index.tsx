@@ -26,7 +26,7 @@ import { Role } from '~/types/role'
 
 const ROLES_LIMIT = 10
 
-const ROLE_COLUMNS: ColumnProps[] = [
+const ROLE_COLUMNS: ColumnProps<Role>[] = [
   {
     name: '_id',
     label: 'ID'

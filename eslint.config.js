@@ -48,7 +48,8 @@ export default tseslint.config(
       'comma-dangle': 1,
       'comma-spacing': 1,
       'arrow-spacing': 1,
-      indent: 0
+      indent: 0,
+      '@typescript-eslint/no-unused-expressions': 0
     }
   }
 )

@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import TableComponent, { ColumnProps } from '~/components/TableComponent'
+import UserConfirmDialog from '~/pages/UserPage/UserConfirmDialog'
 import UserDialog from '~/pages/UserPage/UserDialog'
 import userService from '~/services/userService'
 import { ListPagination, ListParams } from '~/types/common'
@@ -53,6 +54,7 @@ const UserPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [users, setUsers] = useState<User[]>([])
   const [pagination, setPagination] = useState<ListPagination>()
+  const [isShowConfirmDialog, setIsShowConfirmDialog] = useState<boolean>(false)
   const [filters, setFilters] = useState<ListParams>({
     limit: USERS_LIMIT_DEFAULT,
     page: PAGE_DEFAULT,
@@ -74,6 +76,7 @@ const UserPage = () => {
 
       if (res.data._id) {
         toast.success(res.message)
+        setFilters({ ...filters, page: PAGE_DEFAULT })
       }
     } catch (error: any) {
       const errorInfo = error?.response?.data
@@ -115,6 +118,27 @@ const UserPage = () => {
   const handlePageChange = (e: React.ChangeEvent<unknown>, page: number) => {
     e.stopPropagation()
     setFilters({ ...filters, page })
+  }
+
+  const handleDeleteUser = async () => {
+    if (selectedUser?._id) {
+      setIsLoading(true)
+      try {
+        const res = await userService.deleteById(selectedUser._id)
+
+        if (res.data._id) {
+          setFilters({ ...filters, page: PAGE_DEFAULT })
+          setIsShowConfirmDialog(false)
+          setSelectedUser(undefined)
+          toast.success(res.message)
+        }
+      } catch (error: any) {
+        const errorInfo = error?.response?.data
+        toast.error(errorInfo?.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
   }
 
   const fetchUsers = useCallback(async () => {
@@ -171,6 +195,10 @@ const UserPage = () => {
             setIsOpenUserDialog(true)
             setSelectedUser(user)
           }}
+          onRemove={(user) => {
+            setIsShowConfirmDialog(true)
+            setSelectedUser(user)
+          }}
         />
 
         <Box
@@ -196,6 +224,17 @@ const UserPage = () => {
           user={selectedUser}
           onClose={handleCloseUserDialog}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {isShowConfirmDialog && (
+        <UserConfirmDialog
+          isOpen={isShowConfirmDialog}
+          onOk={() => handleDeleteUser()}
+          onClose={() => {
+            setIsShowConfirmDialog(false)
+            setSelectedUser(undefined)
+          }}
         />
       )}
     </>

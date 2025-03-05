@@ -16,6 +16,10 @@ const userService = {
   editById(id: string, payload: EditUserPayload): Promise<ApiResponse<User>> {
     const url = `/users/update-user/${id}`
     return axiosInstance.put(url, payload)
+  },
+  deleteById(id: string): Promise<ApiResponse<User>> {
+    const url = `/users/delete-user/${id}`
+    return axiosInstance.delete(url)
   }
 }
 

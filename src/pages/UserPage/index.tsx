@@ -13,7 +13,7 @@ import TableComponent, { ColumnProps } from '~/components/TableComponent'
 import UserDialog from '~/pages/UserPage/UserDialog'
 import userService from '~/services/userService'
 import { ListPagination, ListParams } from '~/types/common'
-import { AddUserPayload, User } from '~/types/user'
+import { AddUserPayload, EditUserPayload, User } from '~/types/user'
 
 const USERS_LIMIT_DEFAULT = 10
 const PAGE_DEFAULT = 1
@@ -49,7 +49,7 @@ const USER_COLUMNS: ColumnProps<User>[] = [
 
 const UserPage = () => {
   const [isOpenUserDialog, setIsOpenUserDialog] = useState<boolean>(false)
-  const [selectedAccount, setSelectedAccount] = useState<User>()
+  const [selectedUser, setSelectedUser] = useState<User>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [users, setUsers] = useState<User[]>([])
   const [pagination, setPagination] = useState<ListPagination>()
@@ -83,13 +83,30 @@ const UserPage = () => {
     }
   }
 
-  const handleEditUser = (payload: any) => {
-    console.log('Handle edit user')
+  const handleEditUser = async (payload: EditUserPayload) => {
+    if (selectedUser?._id) {
+      setIsLoading(true)
+      try {
+        const res = await userService.editById(selectedUser._id, payload)
+
+        if (res.data._id) {
+          toast.success(res.message)
+          setFilters({ ...filters, page: PAGE_DEFAULT })
+        }
+      } catch (error: any) {
+        const errorInfo = error?.response?.data
+        toast.error(errorInfo?.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
   }
 
-  const handleSubmit = (payload: AddUserPayload) => {
-    if (selectedAccount) {
-      handleEditUser(payload)
+  const handleSubmit = (payload: AddUserPayload | EditUserPayload) => {
+    if (selectedUser) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+      const { password: _password, email: _email, ...editUserPayload } = payload
+      handleEditUser(editUserPayload)
     } else {
       handleAddUser(payload)
     }
@@ -150,6 +167,10 @@ const UserPage = () => {
           loading={isLoading}
           columns={USER_COLUMNS}
           data={users}
+          onEdit={(user) => {
+            setIsOpenUserDialog(true)
+            setSelectedUser(user)
+          }}
         />
 
         <Box
@@ -172,6 +193,7 @@ const UserPage = () => {
       {isOpenUserDialog && (
         <UserDialog
           isOpen={isOpenUserDialog}
+          user={selectedUser}
           onClose={handleCloseUserDialog}
           onSubmit={handleSubmit}
         />

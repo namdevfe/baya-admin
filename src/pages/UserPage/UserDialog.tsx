@@ -25,7 +25,7 @@ import {
 } from '~/constants/environment'
 import roleService from '~/services/roleService'
 import { Role } from '~/types/role'
-import { AddUserPayload, User } from '~/types/user'
+import { AddUserPayload, EditUserPayload, User } from '~/types/user'
 
 interface UserDialogProps {
   isOpen?: boolean
@@ -56,13 +56,15 @@ const UserDialog = ({
 
   const schema = yup.object().shape({
     email: yup.string().required('Email is required.').email('Invalid email.'),
-    password: yup
-      .string()
-      .required('Password is required.')
-      .min(6, 'Password must have contain least 6 charactor.'),
+    password: yup.string().when([], {
+      is: () => !user,
+      then: () => yup.string().required('Password is required'),
+      otherwise: () => yup.string().optional()
+    }),
     firstName: yup.string().required('First name is required.'),
     lastName: yup.string().required('Last name is required.'),
-    avatar: yup.string().optional()
+    displayName: yup.string().optional(),
+    address: yup.string().optional()
   })
 
   const { handleSubmit, control, reset } = useForm({
@@ -70,7 +72,9 @@ const UserDialog = ({
       email: '',
       password: '',
       firstName: '',
-      lastName: ''
+      lastName: '',
+      displayName: '',
+      address: ''
     },
     resolver: yupResolver(schema)
   })
@@ -80,7 +84,9 @@ const UserDialog = ({
       email: '',
       password: '',
       firstName: '',
-      lastName: ''
+      lastName: '',
+      displayName: '',
+      address: ''
     })
   }
 
@@ -123,7 +129,7 @@ const UserDialog = ({
     setFiles(fileList)
   }
 
-  const _onSubmit = async (data: AddUserPayload) => {
+  const _onSubmit = async (data: AddUserPayload | EditUserPayload | any) => {
     const payload = { ...data, role: selectedRole }
 
     if (files) {
@@ -162,6 +168,20 @@ const UserDialog = ({
       previewImageURL && URL.revokeObjectURL(previewImageURL)
     }
   }, [previewImageURL])
+
+  // Fill form in editing mode
+  useEffect(() => {
+    reset({
+      email: user?.email,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      displayName: user?.displayName,
+      address: user?.address,
+      password: '******'
+    })
+    setSelectedRole(user?.role || '')
+    setPreviewImageURL(user?.avatar)
+  }, [user, reset])
 
   return (
     <Dialog
@@ -214,6 +234,8 @@ const UserDialog = ({
             name='email'
             label='Email'
             control={control}
+            disabled={!!user}
+            variant={user ? 'filled' : 'outlined'}
           />
           <InputField
             autoComplete='off'
@@ -221,6 +243,8 @@ const UserDialog = ({
             name='password'
             label='Password'
             control={control}
+            // disabled={!!user}
+            // variant={user ? 'filled' : 'outlined'}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -241,6 +265,12 @@ const UserDialog = ({
           />
           <InputField name='firstName' label='First name' control={control} />
           <InputField name='lastName' label='Last name' control={control} />
+          <InputField
+            name='displayName'
+            label='Display name'
+            control={control}
+          />
+          <InputField name='address' label='Address' control={control} />
           <FormControl fullWidth margin='normal'>
             <InputLabel id='select-role'>Select role</InputLabel>
             <Select

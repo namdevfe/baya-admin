@@ -2,11 +2,12 @@ import { ApiResponse, ListPagination } from '~/types/common'
 
 export interface User {
   _id: string
-  email: string
+  email?: string
   password?: string
-  address: []
+  address?: string
   firstName: string
   lastName: string
+  displayName?: string
   avatar?: string
   role?: string
   _destroy: boolean
@@ -17,10 +18,29 @@ export interface User {
 
 export type AddUserPayload = Pick<
   User,
-  'email' | 'password' | 'firstName' | 'lastName' | 'role' | 'avatar'
+  | 'email'
+  | 'password'
+  | 'firstName'
+  | 'lastName'
+  | 'role'
+  | 'avatar'
+  | 'displayName'
+  | 'address'
 >
 
 export type Users = ApiResponse<{
   users: User[]
   pagination: ListPagination
 }>
+
+export type EditUserPayload = Pick<
+  User,
+  | 'email'
+  | 'address'
+  | 'firstName'
+  | 'lastName'
+  | 'avatar'
+  | 'role'
+  | 'displayName'
+  | 'password'
+>
